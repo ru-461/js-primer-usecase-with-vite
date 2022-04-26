@@ -1,9 +1,59 @@
-console.log("index.js: loaded");
+// Main
+async function main() {
+  try {
+    const userId = getUserId();
+    const userInfo = await fetchUserInfo(userId);
+    const view = createView(userInfo);
+    displayView(view);
+  } catch (error) {
+    console.error(`Error (${error})`);
+  }
+}
 
-// DOM Sample
-const heading = document.querySelector('h2');
-const headngText = heading.textContent;
-const button = document.createElement('button');
+// Fetch API
+function fetchUserInfo(userId) {
+  fetch(`https://api.github.com/users/${encodeURIComponent(userId)}`)
+  .then(response => {
+    console.log(response.status);
+    if (!response.ok) {
+      return Promise.reject(new Error(`${response.status}: ${response.statusText}`));
+    } else {
+      return response.json().then(userInfo => {
+        // HTML
+        const view = createView(userInfo);
+        // VIEW
+        displayView(view)
+      });
+    }
+  }).catch(error => {
+    console.log(error);
+  });
+}
+
+// Get UserId
+function getUserId() {
+  return document.getElementById('userId').value;
+}
+
+// Create HTML
+function createView(userInfo) {
+  return escapeHTML`
+  <h4>${userInfo.name} (@${userInfo.login})</h4>
+  <img src="${userInfo.avatar_url}" alt="${userInfo.login}" height="100">
+  <dl>
+      <dt>Location</dt>
+      <dd>${userInfo.location}</dd>
+      <dt>Repositories</dt>
+      <dd>${userInfo.public_repos}</dd>
+  </dl>
+  `;
+}
+
+// View
+function displayView(view) {
+  const result = document.getElementById('result');
+  result.innerHTML = view;
+}
 
 function escapeSpecialChars(str) {
   return str
@@ -22,34 +72,5 @@ function escapeHTML(strings, ...values) {
     } else {
       return result + String(value) + str;
     }
-  });
-}
-
-// Fetch API
-function fetchUserInfo(userId) {
-  fetch(`https://api.github.com/users/${encodeURIComponent(userId)}`)
-  .then(response => {
-    console.log(response.status);
-    if (!response.ok) {
-      console.error("エラーレスポンス", response);
-    } else {
-      return response.json().then(userInfo => {
-        // template literal
-        const view = escapeHTML`
-        <h4>${userInfo.name} (@${userInfo.login})</h4>
-        <img src="${userInfo.avatar_url}" alt="${userInfo.login}" height="100">
-        <dl>
-            <dt>Location</dt>
-            <dd>${userInfo.location}</dd>
-            <dt>Repositories</dt>
-            <dd>${userInfo.public_repos}</dd>
-        </dl>
-        `;
-        const result = document.getElementById('result');
-        result.innerHTML = view;
-      });
-    }
-  }).catch(error => {
-    console.log(error);
   });
 }
