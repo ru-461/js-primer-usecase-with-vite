@@ -1,32 +1,15 @@
-// console.log('Hello World');
-// console.log(process.argv);
-
-// Import commander
 const program = require("commander");
-
-// Import fs
 const fs = require("fs");
-const { exit } = require("process");
-// Import markd
-const markd = require("marked");
+const mk2html = require("./md2html");
 
-// Add option
-program.option("--gfm", "GFM");
-// Parse
+program.option("--gfm", "Enable GFM");
 program.parse(process.argv);
-// Filepath
 const filePath = program.args[0];
 
-// Option
-const options = program.opts();
-
-// Override
 const cliOptions = {
-  gfm: options.gfm ?? false,
+  gfm: false,
+  ...program.opts(),
 };
-
-// Output
-// console.log(filePath);
 
 // Read Markdown file
 fs.readFile(filePath, { encoding: "utf8" }, (err, file) => {
@@ -35,9 +18,6 @@ fs.readFile(filePath, { encoding: "utf8" }, (err, file) => {
     process.exit(1);
     return;
   }
-  // To html
-  const html = markd.parse(file, {
-    gfm: cliOptions.gfm,
-  });
+  const html = mk2html(file, cliOptions);
   console.log(html);
 });
