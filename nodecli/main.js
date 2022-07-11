@@ -7,12 +7,23 @@ const program = require("commander");
 // Import fs
 const fs = require("fs");
 const { exit } = require("process");
+// Import markd
+const markd = require("marked");
 
+// Add option
+program.option("--gfm", "GFM");
 // Parse
 program.parse(process.argv);
-
 // Filepath
 const filePath = program.args[0];
+
+// Option
+const options = program.opts();
+
+// Override
+const cliOptions = {
+  gfm: options.gfm ?? false,
+};
 
 // Output
 // console.log(filePath);
@@ -24,5 +35,9 @@ fs.readFile(filePath, { encoding: "utf8" }, (err, file) => {
     process.exit(1);
     return;
   }
-  console.log(file);
+  // To html
+  const html = markd.parse(file, {
+    gfm: cliOptions.gfm,
+  });
+  console.log(html);
 });
