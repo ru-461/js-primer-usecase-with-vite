@@ -1,60 +1,98 @@
-import { TodoListModel } from "./model/TodoListModel.js";
+import { render } from "./view/html-util.js";
+import { TodoListView } from "./view/TodoListView.js";
 import { TodoItemModel } from "./model/TodoItemModel.js";
-import { element, render } from "./view/html-util.js";
+import { TodoListModel } from "./model/TodoListModel.js";
 
 export class App {
-  #todoListModel = new TodoListModel();
+  #todoListView = new TodoListView();
+  #todoListModel = new TodoListModel([]);
 
+  formElement;
+  formInputElement;
+  todoCountElement;
+  todoListContainerElement;
+  // 紐づけするHTML要素を引数として受け取る
+  constructor({
+    formElement,
+    formInputElement,
+    todoListContainerElement,
+    todoCountElement,
+  }) {
+    this.formElement = formElement;
+    this.formInputElement = formInputElement;
+    this.todoCountElement = todoCountElement;
+    this.todoListContainerElement = todoListContainerElement;
+  }
+
+  /**
+   * Todoを追加時に呼ばれるリスナー関数
+   * リスナー関数をPrivate Fields + Arrow Functionで定義することで、`this`は常にクラスのインスタンスを示すようにする
+   * @param {string} title
+   */
+  #handleAdd = (title) => {
+    this.#todoListModel.addTodo(new TodoItemModel({ title, completed: false }));
+  };
+
+  /**
+   * Todoの状態を更新時に呼ばれるリスナー関数
+   * @param {{ id:number, completed: boolean }}
+   */
+  #handleUpdate = ({ id, completed }) => {
+    this.#todoListModel.updateTodo({ id, completed });
+  };
+
+  /**
+   * Todoを削除時に呼ばれるリスナー関数
+   * @param {{ id: number }}
+   */
+  #handleDelete = ({ id }) => {
+    this.#todoListModel.deleteTodo({ id });
+  };
+
+  /**
+   * フォームを送信時に呼ばれるリスナー関数
+   * @param {Event} event
+   */
+  #handleSubmit = (event) => {
+    event.preventDefault();
+    const inputElement = this.formInputElement;
+    this.#handleAdd(inputElement.value);
+    inputElement.value = "";
+  };
+
+  /**
+   * TodoListViewが変更した時に呼ばれるリスナー関数
+   */
+  #handleChange = () => {
+    const todoCountElement = this.todoCountElement;
+    const todoListContainerElement = this.todoListContainerElement;
+    const todoItems = this.#todoListModel.getTodoItems();
+    const todoListElement = this.#todoListView.createElement(todoItems, {
+      // Appに定義したリスナー関数を呼び出す
+      onUpdateTodo: ({ id, completed }) => {
+        this.#handleUpdate({ id, completed });
+      },
+      onDeleteTodo: ({ id }) => {
+        this.#handleDelete({ id });
+      },
+    });
+    render(todoListElement, todoListContainerElement);
+    todoCountElement.textContent = `Todoアイテム数: ${this.#todoListModel.getTotalCount()}`;
+  };
+
+  /**
+   * アプリとDOMの紐づけを登録する関数
+   */
   mount() {
-    const formElement = document.querySelector("#js-form");
-    const inputElement = document.querySelector("#js-form-input");
-    const containerElement = document.querySelector("#js-todo-list");
-    const todoItemCountElement = document.querySelector("#js-todo-count");
-    //! [checkbox]
-    this.#todoListModel.onChange(() => {
-      const todoListElement = element`<ul></ul>`;
-      const todoItems = this.#todoListModel.getTodoItems();
-      todoItems.forEach((item) => {
-        // 削除ボタン(x)をそれぞれ追加する
-        const todoItemElement = item.completed
-          ? element`<li><input type="checkbox" class="checkbox" checked>
-                        <s>${item.title}</s>
-                        <button class="delete">x</button>
-                    </li>`
-          : element`<li><input type="checkbox" class="checkbox">
-                        ${item.title}
-                        <button class="delete">x</button>
-                    </li>`;
-        // チェックボックスのトグル処理は変更なし
-        const inputCheckboxElement = todoItemElement.querySelector(".checkbox");
-        inputCheckboxElement.addEventListener("change", () => {
-          this.#todoListModel.updateTodo({
-            id: item.id,
-            completed: !item.completed,
-          });
-        });
-        // 削除ボタン(x)がクリックされたときにTodoListModelからアイテムを削除する
-        const deleteButtonElement = todoItemElement.querySelector(".delete");
-        deleteButtonElement.addEventListener("click", () => {
-          this.#todoListModel.deleteTodo({
-            id: item.id,
-          });
-        });
-        todoListElement.appendChild(todoItemElement);
-      });
-      render(todoListElement, containerElement);
-      todoItemCountElement.textContent = `Todoアイテム数: ${this.#todoListModel.getTotalCount()}`;
-    });
-    //! [checkbox]
-    formElement.addEventListener("submit", (event) => {
-      event.preventDefault();
-      this.#todoListModel.addTodo(
-        new TodoItemModel({
-          title: inputElement.value,
-          completed: false,
-        })
-      );
-      inputElement.value = "";
-    });
+    this.#todoListModel.onChange(this.#handleChange);
+    this.formElement.addEventListener("submit", this.#handleSubmit);
+  }
+
+  /**
+   * アプリとDOMの紐づけを解除する関数
+   */
+  unmount() {
+    this.#todoListModel.offChange(this.#handleChange);
+    this.formElement.removeEventListener("submit", this.#handleSubmit);
   }
 }

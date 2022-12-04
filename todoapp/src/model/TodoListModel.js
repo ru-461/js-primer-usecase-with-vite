@@ -3,7 +3,7 @@ import { EventEmitter } from "../EventEmitter.js";
 export class TodoListModel extends EventEmitter {
   #items;
   /**
-   * @param {TodoItemModel[]} [items]
+   * @param {TodoItemModel[]} [items] 初期アイテム一覧（デフォルトは空の配列）
    */
   constructor(items = []) {
     super();
@@ -35,6 +35,14 @@ export class TodoListModel extends EventEmitter {
   }
 
   /**
+   * `onChange`で登録したリスナー関数を解除する
+   * @param {Function} listener
+   */
+  offChange(listener) {
+    this.removeEventListener("change", listener);
+  }
+
+  /**
    * 状態が変更されたときに呼ぶ。登録済みのリスナー関数を呼び出す
    */
   emitChange() {
@@ -42,16 +50,20 @@ export class TodoListModel extends EventEmitter {
   }
 
   /**
-   * TodoItemを追加
+   * TodoItemを追加する
    * @param {TodoItemModel} todoItem
    */
   addTodo(todoItem) {
+    // タイトルが空のものは追加しない
+    if (todoItem.isEmptyTitle()) {
+      return;
+    }
     this.#items.push(todoItem);
     this.emitChange();
   }
 
   /**
-   * 指定した`id`のTodoItemの`completed`を更新する
+   * 指定したidのTodoItemのcompletedを更新する
    * @param {{ id:number, completed: boolean }}
    */
   updateTodo({ id, completed }) {
@@ -63,7 +75,8 @@ export class TodoListModel extends EventEmitter {
     this.emitChange();
   }
 
-  /* 指定したidのTodoItemを削除する
+  /**
+   * 指定したidのTodoItemを削除する
    * @param {{ id: number }}
    */
   deleteTodo({ id }) {
