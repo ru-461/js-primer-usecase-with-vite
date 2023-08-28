@@ -1,11 +1,11 @@
-# js-primer-usecase-with-vite
+# JavaScript Primer Usecase With Vite
 
 My JavaScript Primer Usecase Using Vite.
 
-- [JavaScript Primer](https://jsprimer.net/)
-- [Vite](https://vitejs.dev/)
+- [JavaScript Primer](https://jsprimer.net)
+- [Vite](https://vitejs.dev)
 
-# Run application
+## Run application
 
 Change application dir.
 
@@ -13,10 +13,10 @@ Change application dir.
 cd <app-name>
 ```
 
-Start dev server. 
+Start dev server.
 
 ```shell
 yarn dev
 ```
 
-Access with a browser http://localhost:3000/
+Access with a browser[localhost:3000](http://localhost:3000)
