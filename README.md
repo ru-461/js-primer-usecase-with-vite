@@ -1,6 +1,6 @@
-# JavaScript Primer Usecase With Vite
+# JavaScript Primer Sample Using Vite
 
-My JavaScript Primer Usecase Using Vite.
+My JavaScript primer samples using Vite.
 
 - [JavaScript Primer](https://jsprimer.net)
 - [Vite](https://vitejs.dev)
@@ -19,4 +19,4 @@ Start dev server.
 yarn dev
 ```
 
-Access with a browser[localhost:3000](http://localhost:3000)
+Access [localhost:3000](http://localhost:3000) with a browser.
